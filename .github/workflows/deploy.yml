@@ -62,8 +62,11 @@ jobs:
           -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}"
         
     - name: Save RDS Endpoint
+      id: rds
       run: |
-        echo "RDS_ENDPOINT=$(terraform output -raw db_endpoint)" >> $GITHUB_ENV
+        endpoint=$(terraform output -raw db_endpoint)
+        echo "endpoint=${endpoint}" >> "$GITHUB_ENV"
+        echo "Database endpoint: ${endpoint}"
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
@@ -72,4 +75,4 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
         build-args: |
-          DATABASE_URL=mysql://admin:${{ secrets.DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}/vulnerabilities
+          DATABASE_URL=mysql://admin:${{ secrets.DB_PASSWORD }}@${{ env.endpoint }}/vulnerabilities
