@@ -11,12 +11,29 @@ data "aws_instances" "extras" {
   }
 }
 
+# Protect our working instance
+resource "aws_ec2_tag" "protect" {
+  resource_id = "i-02095903fa9586491"
+  key         = "Protected"
+  value       = "true"
+}
+
+# This is just for documentation - our working instance
+output "working_instance" {
+  value = {
+    instance_id = "i-02095903fa9586491"
+    public_ip  = "34.217.13.222"
+    port       = "5000"
+  }
+  description = "Details of our working instance"
+}
+
 resource "null_resource" "cleanup" {
   provisioner "local-exec" {
     command = <<-EOT
       aws ec2 terminate-instances --instance-ids ${join(" ", [
         for id in data.aws_instances.extras.ids : id
-        if id != aws_instance.app_server[0].id
+        if id != "i-02095903fa9586491"
       ])}
     EOT
   }
