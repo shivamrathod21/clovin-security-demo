@@ -32,12 +32,10 @@ jobs:
 
     - name: Build and push
       uses: docker/build-push-action@v2
-      env:
-        DOCKER_REPO: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}
       with:
         context: .
         push: true
-        tags: ${{ env.DOCKER_REPO }}:latest
+        tags: shivit721/clovin-security:latest
         build-args: |
           DATABASE_URL=mysql://admin:${{ secrets.DB_PASSWORD }}@clovin-security-db.c56ay4eawb7p.us-west-2.rds.amazonaws.com:3306/vulnerabilities
 
