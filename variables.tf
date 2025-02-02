@@ -4,8 +4,13 @@ variable "docker_username" {
 }
 
 variable "db_password" {
-  description = "Password for the RDS database"
+  description = "Password for the RDS instance"
   type        = string
   sensitive   = true
-  default     = "Shakti721"
+}
+
+variable "public_key_path" {
+  description = "Path to the public key file for EC2 SSH access"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"  # Default path to public key
 }

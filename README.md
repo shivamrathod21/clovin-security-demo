@@ -121,6 +121,36 @@ curl -X PUT http://localhost:5000/api/vulnerabilities/1 \
 curl -X DELETE http://localhost:5000/api/vulnerabilities/1
 ```
 
+## 🔑 SSH Access
+
+To access the EC2 instance via SSH:
+
+1. First, make sure you have an SSH key pair:
+   ```bash
+   # Generate a new key pair if you don't have one
+   ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+   ```
+
+2. When applying Terraform:
+   ```bash
+   # Set your database password
+   export TF_VAR_db_password="your_secure_password"
+   
+   # Optionally set a custom path to your public key
+   export TF_VAR_public_key_path="path/to/your/key.pub"
+   
+   # Apply Terraform configuration
+   terraform init
+   terraform apply
+   ```
+
+3. SSH into the instance:
+   ```bash
+   ssh -i ~/.ssh/id_rsa ubuntu@<instance-ip>
+   ```
+
+> 💡 **Note**: The instance IP will be shown in the Terraform output after applying.
+
 ## 🔧 Troubleshooting Guide
 
 ### Common Issues

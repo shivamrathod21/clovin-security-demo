@@ -95,6 +95,12 @@ resource "aws_security_group" "ec2" {
   }
 }
 
+# Create key pair for EC2 instance
+resource "aws_key_pair" "deployer" {
+  key_name   = "clovin-security-key"
+  public_key = file(var.public_key_path)
+}
+
 # Create DB subnet group
 resource "aws_db_subnet_group" "default" {
   name       = "clovin-security-subnet-group"
@@ -126,14 +132,34 @@ resource "aws_db_instance" "mysql" {
   }
 }
 
-# Reference the existing EC2 instance
-data "aws_instance" "app_server" {
-  instance_id = "i-02095903fa9586491"
+# Create EC2 instance
+resource "aws_instance" "app_server" {
+  ami           = "ami-0735c191cf914754d"  # Ubuntu 20.04 LTS in us-west-2
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.deployer.key_name
+
+  vpc_security_group_ids = [aws_security_group.ec2.id]
+  subnet_id             = data.aws_subnets.default.ids[0]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt-get update
+              sudo apt-get install -y python3-pip
+              git clone https://github.com/shivamrathod21/clovin-security-demo.git
+              cd clovin-security-demo
+              pip3 install -r requirements.txt
+              export DATABASE_URL="${aws_db_instance.mysql.endpoint}"
+              python3 app.py
+              EOF
+
+  tags = {
+    Name = "clovin-security-app"
+  }
 }
 
 # Output the public IP and DB endpoint
 output "public_ip" {
-  value       = data.aws_instance.app_server.public_ip
+  value       = aws_instance.app_server.public_ip
   description = "The public IP of the web server"
 }
 
