@@ -22,7 +22,7 @@ resource "aws_instance" "app_server" {
               systemctl start docker
               systemctl enable docker
               docker pull ${var.docker_username}/seminar-crud-demo:latest
-              docker run -d -p 80:5000 ${var.docker_username}/seminar-crud-demo:latest
+              docker run -d -p 5000:5000 ${var.docker_username}/seminar-crud-demo:latest
               EOF
 
   tags = {
@@ -40,6 +40,14 @@ resource "aws_security_group" "allow_web" {
     description = "HTTP"
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Flask App"
+    from_port   = 5000
+    to_port     = 5000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
