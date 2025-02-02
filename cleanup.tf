@@ -1,29 +1,30 @@
-# This file will help clean up extra instances
-data "aws_instances" "extras" {
-  filter {
-    name   = "tag:Name"
-    values = ["seminar-crud-demo"]
-  }
+# This file manages cleanup of resources
 
-  filter {
-    name   = "instance-state-name"
-    values = ["running"]
+# Allow RDS deletion
+resource "aws_db_instance" "mysql" {
+  identifier           = "clovin-security-db"
+  skip_final_snapshot  = true
+  deletion_protection = false
+
+  lifecycle {
+    prevent_destroy = false
   }
 }
 
-# Protect our working instance
+# Remove the protect tag from EC2
 resource "aws_ec2_tag" "protect" {
   resource_id = "i-02095903fa9586491"
   key         = "Protected"
-  value       = "true"
+  value       = "false"
 }
 
-# This is just for documentation - our working instance
-output "working_instance" {
+# Output resources to be cleaned
+output "cleanup_info" {
   value = {
-    instance_id = "i-02095903fa9586491"
-    public_ip  = "34.217.13.222"
-    port       = "5000"
+    rds_instance     = aws_db_instance.mysql.id
+    ec2_instance     = "i-02095903fa9586491"
+    security_groups  = [aws_security_group.rds.id]
+    vpc_id          = data.aws_vpc.default.id
   }
-  description = "Details of our working instance"
+  description = "Resources that will be cleaned up"
 }
