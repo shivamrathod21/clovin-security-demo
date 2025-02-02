@@ -27,18 +27,3 @@ output "working_instance" {
   }
   description = "Details of our working instance"
 }
-
-resource "null_resource" "cleanup" {
-  provisioner "local-exec" {
-    command = <<-EOT
-      aws ec2 terminate-instances --instance-ids ${join(" ", [
-        for id in data.aws_instances.extras.ids : id
-        if id != "i-02095903fa9586491"
-      ])}
-    EOT
-  }
-
-  triggers = {
-    instance_ids = join(",", data.aws_instances.extras.ids)
-  }
-}
