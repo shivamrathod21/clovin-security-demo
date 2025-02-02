@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     outputs:
-      rds_endpoint: ${{ steps.terraform.outputs.rds_endpoint }}
+      rds_endpoint: ${{ steps.get-outputs.outputs.rds_endpoint }}
     
     steps:
     - uses: actions/checkout@v2
@@ -47,14 +47,18 @@ jobs:
           -var="public_key_path=~/.ssh/id_rsa.pub" \
           -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}"
       
-    - name: Terraform Apply and Get Outputs
-      id: terraform
+    - name: Terraform Apply
       run: |
         terraform apply -auto-approve \
           -var="db_password=${{ secrets.DB_PASSWORD }}" \
           -var="public_key_path=~/.ssh/id_rsa.pub" \
           -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}"
-        echo "rds_endpoint=$(terraform output -raw db_endpoint)" >> $GITHUB_OUTPUT
+
+    - name: Get Terraform Outputs
+      id: get-outputs
+      run: |
+        RDS_ENDPOINT=$(terraform output -raw db_endpoint)
+        echo "rds_endpoint=${RDS_ENDPOINT}" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build
