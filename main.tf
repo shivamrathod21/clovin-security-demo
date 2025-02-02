@@ -18,10 +18,6 @@ provider "aws" {
   region = "us-west-2"
 }
 
-locals {
-  db_password = coalesce(var.db_password, "Shakti721")  # Use provided password or default
-}
-
 # Get existing security group
 data "aws_security_group" "existing" {
   name = "allow_web_traffic"
@@ -61,7 +57,7 @@ resource "aws_db_instance" "mysql" {
   instance_class      = "db.t3.micro"
   db_name             = "vulnerabilities"
   username            = "admin"
-  password            = local.db_password
+  password            = var.db_password
   skip_final_snapshot = true
 
   vpc_security_group_ids = [aws_security_group.rds.id]
