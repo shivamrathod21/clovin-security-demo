@@ -10,23 +10,21 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Vulnerability Model
+# Define Vulnerability model
 class Vulnerability(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    severity = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    reported_date = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='Open')
+    severity = db.Column(db.String(20), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         return {
             'id': self.id,
-            'title': self.title,
-            'severity': self.severity,
+            'name': self.name,
             'description': self.description,
-            'reported_date': self.reported_date.isoformat(),
-            'status': self.status
+            'severity': self.severity,
+            'created_at': self.created_at.isoformat()
         }
 
 # Create tables
@@ -39,63 +37,46 @@ def home():
 
 @app.route('/api/vulnerabilities', methods=['GET'])
 def get_vulnerabilities():
-    vulns = Vulnerability.query.all()
-    return jsonify([v.to_dict() for v in vulns])
+    vulnerabilities = Vulnerability.query.all()
+    return jsonify([v.to_dict() for v in vulnerabilities])
 
 @app.route('/api/vulnerabilities', methods=['POST'])
 def create_vulnerability():
-    data = request.json
-    required_fields = ['title', 'severity', 'description']
+    data = request.get_json()
     
-    if not data or not all(field in data for field in required_fields):
-        return jsonify({
-            "error": "Required fields: title, severity, description"
-        }), 400
-    
-    if data['severity'] not in ['Low', 'Medium', 'High', 'Critical']:
-        return jsonify({
-            "error": "Severity must be one of: Low, Medium, High, Critical"
-        }), 400
-    
-    vuln = Vulnerability(
-        title=data['title'],
-        severity=data['severity'],
-        description=data['description']
+    if not all(k in data for k in ('name', 'description', 'severity')):
+        return jsonify({'error': 'Missing required fields'}), 400
+        
+    vulnerability = Vulnerability(
+        name=data['name'],
+        description=data['description'],
+        severity=data['severity']
     )
-    db.session.add(vuln)
+    db.session.add(vulnerability)
     db.session.commit()
+    return jsonify(vulnerability.to_dict()), 201
+
+@app.route('/api/vulnerabilities/<int:id>', methods=['GET'])
+def get_vulnerability(id):
+    vulnerability = Vulnerability.query.get_or_404(id)
+    return jsonify(vulnerability.to_dict())
+
+@app.route('/api/vulnerabilities/<int:id>', methods=['PUT'])
+def update_vulnerability(id):
+    vulnerability = Vulnerability.query.get_or_404(id)
+    data = request.get_json()
     
-    return jsonify(vuln.to_dict()), 201
-
-@app.route('/api/vulnerabilities/<int:vuln_id>', methods=['GET'])
-def get_vulnerability(vuln_id):
-    vuln = Vulnerability.query.get_or_404(vuln_id)
-    return jsonify(vuln.to_dict())
-
-@app.route('/api/vulnerabilities/<int:vuln_id>', methods=['PUT'])
-def update_vulnerability(vuln_id):
-    vuln = Vulnerability.query.get_or_404(vuln_id)
-    data = request.json
-    if 'title' in data:
-        vuln.title = data['title']
-    if 'severity' in data:
-        if data['severity'] not in ['Low', 'Medium', 'High', 'Critical']:
-            return jsonify({
-                "error": "Severity must be one of: Low, Medium, High, Critical"
-            }), 400
-        vuln.severity = data['severity']
-    if 'description' in data:
-        vuln.description = data['description']
-    if 'status' in data:
-        vuln.status = data['status']
+    vulnerability.name = data.get('name', vulnerability.name)
+    vulnerability.description = data.get('description', vulnerability.description)
+    vulnerability.severity = data.get('severity', vulnerability.severity)
     
     db.session.commit()
-    return jsonify(vuln.to_dict())
+    return jsonify(vulnerability.to_dict())
 
-@app.route('/api/vulnerabilities/<int:vuln_id>', methods=['DELETE'])
-def delete_vulnerability(vuln_id):
-    vuln = Vulnerability.query.get_or_404(vuln_id)
-    db.session.delete(vuln)
+@app.route('/api/vulnerabilities/<int:id>', methods=['DELETE'])
+def delete_vulnerability(id):
+    vulnerability = Vulnerability.query.get_or_404(id)
+    db.session.delete(vulnerability)
     db.session.commit()
     return '', 204
 

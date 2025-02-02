@@ -1,16 +1,5 @@
 # This file manages cleanup of resources
 
-# Allow RDS deletion
-resource "aws_db_instance" "mysql" {
-  identifier           = "clovin-security-db"
-  skip_final_snapshot  = true
-  deletion_protection = false
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
 # Remove the protect tag from EC2
 resource "aws_ec2_tag" "protect" {
   resource_id = "i-02095903fa9586491"
