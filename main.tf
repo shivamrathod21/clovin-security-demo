@@ -22,12 +22,26 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
+              # Update and install Docker
               apt-get update
               apt-get install -y docker.io
               systemctl start docker
               systemctl enable docker
+
+              # Wait for Docker to be ready
+              sleep 10
+
+              # Pull and run the container
               docker pull ${var.docker_username}/clovin-security-demo:latest
-              docker run -d -p 5000:5000 ${var.docker_username}/clovin-security-demo:latest
+              docker run -d \
+                --name flask-app \
+                -p 5000:5000 \
+                --restart unless-stopped \
+                ${var.docker_username}/clovin-security-demo:latest
+
+              # Log the container status
+              echo "Container status:" > /var/log/container-status.log
+              docker ps >> /var/log/container-status.log
               EOF
 
   tags = {
@@ -35,4 +49,10 @@ resource "aws_instance" "app_server" {
   }
 
   vpc_security_group_ids = [data.aws_security_group.existing.id]
+}
+
+# Output the public IP
+output "public_ip" {
+  value = aws_instance.app_server.public_ip
+  description = "The public IP of the web server"
 }
