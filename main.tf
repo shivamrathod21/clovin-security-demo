@@ -5,6 +5,13 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  # Store state in S3 to prevent duplicate resources
+  backend "s3" {
+    bucket = "clovin-terraform-state"
+    key    = "seminar-crud-demo/terraform.tfstate"
+    region = "us-west-2"
+  }
 }
 
 provider "aws" {
@@ -19,6 +26,7 @@ data "aws_security_group" "existing" {
 resource "aws_instance" "app_server" {
   ami           = "ami-0735c191cf914754d"  # Ubuntu 20.04 LTS in us-west-2
   instance_type = "t2.micro"
+  count         = 1  # Ensure only one instance
 
   user_data = <<-EOF
               #!/bin/bash
@@ -53,6 +61,6 @@ resource "aws_instance" "app_server" {
 
 # Output the public IP
 output "public_ip" {
-  value = aws_instance.app_server.public_ip
+  value = aws_instance.app_server[0].public_ip
   description = "The public IP of the web server"
 }
