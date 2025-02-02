@@ -11,15 +11,9 @@ provider "aws" {
   region = "us-west-2"  # Change this to your preferred region
 }
 
-# Get existing VPC
-data "aws_vpc" "default" {
-  default = true
-}
-
 # Get existing security group
 data "aws_security_group" "existing" {
-  name   = "allow_web_traffic"
-  vpc_id = data.aws_vpc.default.id
+  name = "allow_web_traffic"
 }
 
 resource "aws_instance" "app_server" {
@@ -41,15 +35,4 @@ resource "aws_instance" "app_server" {
   }
 
   vpc_security_group_ids = [data.aws_security_group.existing.id]
-}
-
-# Add only the Flask port rule
-resource "aws_security_group_rule" "allow_flask" {
-  type              = "ingress"
-  from_port         = 5000
-  to_port           = 5000
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = data.aws_security_group.existing.id
-  description       = "Allow Flask application traffic"
 }
