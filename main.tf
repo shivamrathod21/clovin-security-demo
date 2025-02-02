@@ -67,33 +67,14 @@ resource "aws_db_instance" "mysql" {
   }
 }
 
-# Import the existing working instance
-resource "aws_instance" "app_server" {
-  # This is your working instance
+# Reference the existing EC2 instance
+data "aws_instance" "app_server" {
   instance_id = "i-02095903fa9586491"
-  ami           = "ami-0735c191cf914754d"
-  instance_type = "t2.micro"
-
-  tags = {
-    Name = "seminar-crud-demo"
-  }
-
-  vpc_security_group_ids = [data.aws_security_group.existing.id]
-
-  # Prevent recreation of the instance
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes = [
-      ami,
-      user_data,
-      instance_type
-    ]
-  }
 }
 
 # Output the public IP and DB endpoint
 output "public_ip" {
-  value = aws_instance.app_server.public_ip
+  value = data.aws_instance.app_server.public_ip
   description = "The public IP of the web server"
 }
 
