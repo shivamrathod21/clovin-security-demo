@@ -32,8 +32,8 @@ resource "aws_instance" "app_server" {
               apt-get install -y docker.io
               systemctl start docker
               systemctl enable docker
-              docker pull ${var.docker_username}/seminar-crud-demo:latest
-              docker run -d -p 5000:5000 ${var.docker_username}/seminar-crud-demo:latest
+              docker pull ${var.docker_username}/clovin-security-demo:latest
+              docker run -d -p 5000:5000 ${var.docker_username}/clovin-security-demo:latest
               EOF
 
   tags = {
@@ -43,16 +43,7 @@ resource "aws_instance" "app_server" {
   vpc_security_group_ids = [data.aws_security_group.existing.id]
 }
 
-# Update existing security group rules
-resource "aws_security_group_rule" "allow_http" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = data.aws_security_group.existing.id
-}
-
+# Add only the Flask port rule
 resource "aws_security_group_rule" "allow_flask" {
   type              = "ingress"
   from_port         = 5000
@@ -60,13 +51,5 @@ resource "aws_security_group_rule" "allow_flask" {
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = data.aws_security_group.existing.id
-}
-
-resource "aws_security_group_rule" "allow_egress" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = data.aws_security_group.existing.id
+  description       = "Allow Flask application traffic"
 }
