@@ -3,9 +3,15 @@ name: Build and Deploy
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   AWS_REGION: us-west-2
+  ECR_REPOSITORY: clovin-security
+  ECS_SERVICE: clovin-service
+  ECS_CLUSTER: clovin-cluster
+  CONTAINER_NAME: clovin-container
   TF_IN_AUTOMATION: true
   TF_INPUT: false
   DOCKER_IMAGE: clovin-security
