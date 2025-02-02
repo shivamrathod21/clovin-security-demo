@@ -5,17 +5,10 @@ terraform {
       version = "~> 4.0"
     }
   }
-
-  # Store state in S3 to prevent duplicate resources
-  backend "s3" {
-    bucket = "clovin-terraform-state"
-    key    = "seminar-crud-demo/terraform.tfstate"
-    region = "us-west-2"
-  }
 }
 
 provider "aws" {
-  region = "us-west-2"  # Change this to your preferred region
+  region = "us-west-2"
 }
 
 # Get existing security group
