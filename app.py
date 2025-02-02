@@ -1,15 +1,12 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
-import os
 from datetime import datetime
-from dotenv import load_dotenv
-
-load_dotenv()
+import os
 
 app = Flask(__name__)
 
-# Configure MySQL
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# Configure SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -31,6 +28,10 @@ class Vulnerability(db.Model):
             'reported_date': self.reported_date.isoformat(),
             'status': self.status
         }
+
+# Create tables
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def home():
@@ -68,17 +69,12 @@ def create_vulnerability():
 
 @app.route('/api/vulnerabilities/<int:vuln_id>', methods=['GET'])
 def get_vulnerability(vuln_id):
-    vuln = Vulnerability.query.get(vuln_id)
-    if vuln is None:
-        return jsonify({"error": "Vulnerability not found"}), 404
+    vuln = Vulnerability.query.get_or_404(vuln_id)
     return jsonify(vuln.to_dict())
 
 @app.route('/api/vulnerabilities/<int:vuln_id>', methods=['PUT'])
 def update_vulnerability(vuln_id):
-    vuln = Vulnerability.query.get(vuln_id)
-    if vuln is None:
-        return jsonify({"error": "Vulnerability not found"}), 404
-    
+    vuln = Vulnerability.query.get_or_404(vuln_id)
     data = request.json
     if 'title' in data:
         vuln.title = data['title']
@@ -98,16 +94,11 @@ def update_vulnerability(vuln_id):
 
 @app.route('/api/vulnerabilities/<int:vuln_id>', methods=['DELETE'])
 def delete_vulnerability(vuln_id):
-    vuln = Vulnerability.query.get(vuln_id)
-    if vuln is None:
-        return jsonify({"error": "Vulnerability not found"}), 404
-    
+    vuln = Vulnerability.query.get_or_404(vuln_id)
     db.session.delete(vuln)
     db.session.commit()
     return '', 204
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Create tables
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
