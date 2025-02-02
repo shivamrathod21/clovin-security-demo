@@ -61,6 +61,40 @@ resource "aws_security_group" "rds" {
   }
 }
 
+# Security group for EC2
+resource "aws_security_group" "ec2" {
+  name        = "clovin-security-ec2"
+  description = "Security group for EC2 instance"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH access"
+  }
+
+  ingress {
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Flask app access"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "clovin-security-ec2"
+  }
+}
+
 # Create DB subnet group
 resource "aws_db_subnet_group" "default" {
   name       = "clovin-security-subnet-group"
