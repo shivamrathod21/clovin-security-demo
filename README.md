@@ -88,6 +88,82 @@ Ever wondered how to build a **secure**, **scalable**, and **cloud-native** vuln
 | PUT | `/api/vulnerabilities/<id>` | Update vulnerability |
 | DELETE | `/api/vulnerabilities/<id>` | Delete vulnerability |
 
+### Example API Calls
+
+```bash
+# List all vulnerabilities
+curl http://localhost:5000/api/vulnerabilities
+
+# Create a new vulnerability
+curl -X POST http://localhost:5000/api/vulnerabilities \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SQL Injection",
+    "description": "Potential SQL injection in login form",
+    "severity": "High"
+  }'
+
+# Get a specific vulnerability
+curl http://localhost:5000/api/vulnerabilities/1
+
+# Update a vulnerability
+curl -X PUT http://localhost:5000/api/vulnerabilities/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SQL Injection",
+    "description": "Updated description",
+    "severity": "Critical"
+  }'
+
+# Delete a vulnerability
+curl -X DELETE http://localhost:5000/api/vulnerabilities/1
+```
+
+## 🔧 Troubleshooting Guide
+
+### Common Issues
+
+1. **Database Connection Failed**
+   ```
+   Error: Unable to connect to database
+   ```
+   **Solution**: 
+   - Check if RDS instance is running
+   - Verify DATABASE_URL in .env
+   - Ensure security group allows connection
+
+2. **Docker Build Failed**
+   ```
+   Error: No space left on device
+   ```
+   **Solution**:
+   - Run `docker system prune`
+   - Free up disk space
+   - Remove unused images
+
+3. **Terraform Apply Failed**
+   ```
+   Error: Error creating DB Instance
+   ```
+   **Solution**:
+   - Check AWS credentials
+   - Verify region settings
+   - Ensure sufficient permissions
+
+### Health Check
+
+Run this to verify your setup:
+```bash
+# Check application status
+curl http://localhost:5000/
+
+# Test database connection
+python -c "from app import db; db.create_all()"
+
+# Verify Docker container
+docker ps | grep clovin-security
+```
+
 ## 🔐 Security Best Practices
 
 1. **Database Security**

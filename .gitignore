@@ -25,6 +25,11 @@ wheels/
 venv/
 ENV/
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # IDE
 .idea/
 .vscode/
@@ -36,6 +41,20 @@ ENV/
 *.tfstate
 *.tfstate.*
 *.tfvars
+.terraform.lock.hcl
 
 # Misc
 .DS_Store
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+docker-compose.override.yml
