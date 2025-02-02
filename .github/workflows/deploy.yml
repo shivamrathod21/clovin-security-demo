@@ -28,31 +28,14 @@ jobs:
       with:
         terraform_wrapper: false
 
-    - name: Debug Secrets
-      run: |
-        echo "Checking if secrets are available..."
-        if [ -n "${{ secrets.DB_PASSWORD }}" ]; then echo "DB_PASSWORD is set"; else echo "DB_PASSWORD is not set!"; fi
-        if [ -n "${{ secrets.DOCKER_HUB_USERNAME }}" ]; then echo "DOCKER_HUB_USERNAME is set"; else echo "DOCKER_HUB_USERNAME is not set!"; fi
-
     - name: Terraform Init
       run: terraform init
 
     - name: Terraform Plan
-      run: |
-        terraform plan \
-        -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
-        -var="db_password=${{ secrets.DB_PASSWORD }}" \
-        -input=false \
-        -no-color
+      run: terraform plan
 
     - name: Terraform Apply
-      run: |
-        terraform apply \
-        -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}" \
-        -var="db_password=${{ secrets.DB_PASSWORD }}" \
-        -input=false \
-        -no-color \
-        -auto-approve
+      run: terraform apply -auto-approve
 
     - name: Get RDS Endpoint
       id: rds
@@ -72,4 +55,4 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/clovin-security:latest
       env:
-        DATABASE_URL: mysql://admin:${{ secrets.DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}/vulnerabilities
+        DATABASE_URL: mysql://admin:Shakti721@${{ env.RDS_ENDPOINT }}/vulnerabilities
