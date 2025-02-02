@@ -18,6 +18,18 @@ provider "aws" {
   region = "us-west-2"
 }
 
+# Get existing VPC and subnets
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
 # Get existing security group
 data "aws_security_group" "existing" {
   name = "allow_web_traffic"
@@ -27,6 +39,7 @@ data "aws_security_group" "existing" {
 resource "aws_security_group" "rds" {
   name        = "allow_mysql"
   description = "Allow MySQL inbound traffic"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description     = "MySQL from EC2"
@@ -48,6 +61,16 @@ resource "aws_security_group" "rds" {
   }
 }
 
+# Create DB subnet group
+resource "aws_db_subnet_group" "default" {
+  name       = "clovin-security-subnet-group"
+  subnet_ids = data.aws_subnets.default.ids
+
+  tags = {
+    Name = "Clovin Security DB subnet group"
+  }
+}
+
 # Create RDS instance
 resource "aws_db_instance" "mysql" {
   identifier           = "clovin-security-db"
@@ -59,8 +82,10 @@ resource "aws_db_instance" "mysql" {
   username            = "admin"
   password            = var.db_password
   skip_final_snapshot = true
+  publicly_accessible = true
 
   vpc_security_group_ids = [aws_security_group.rds.id]
+  db_subnet_group_name   = aws_db_subnet_group.default.name
 
   tags = {
     Name = "clovin-security-db"
@@ -74,11 +99,11 @@ data "aws_instance" "app_server" {
 
 # Output the public IP and DB endpoint
 output "public_ip" {
-  value = data.aws_instance.app_server.public_ip
+  value       = data.aws_instance.app_server.public_ip
   description = "The public IP of the web server"
 }
 
 output "db_endpoint" {
-  value = aws_db_instance.mysql.endpoint
+  value       = aws_db_instance.mysql.endpoint
   description = "The endpoint of the MySQL database"
 }
