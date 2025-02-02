@@ -13,11 +13,9 @@ env:
   DOCKER_IMAGE: clovin-security
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    outputs:
-      rds_endpoint: ${{ steps.get-outputs.outputs.rds_endpoint }}
     
     steps:
     - uses: actions/checkout@v2
@@ -28,6 +26,15 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-west-2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
@@ -53,29 +60,10 @@ jobs:
           -var="db_password=${{ secrets.DB_PASSWORD }}" \
           -var="public_key_path=~/.ssh/id_rsa.pub" \
           -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}"
-
-    - name: Get Terraform Outputs
-      id: get-outputs
+        
+    - name: Save RDS Endpoint
       run: |
-        RDS_ENDPOINT=$(terraform output -raw db_endpoint)
-        echo "rds_endpoint=${RDS_ENDPOINT}" >> "$GITHUB_OUTPUT"
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+        echo "RDS_ENDPOINT=$(terraform output -raw db_endpoint)" >> $GITHUB_ENV
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
@@ -84,4 +72,4 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
         build-args: |
-          DATABASE_URL=mysql://admin:${{ secrets.DB_PASSWORD }}@${{ needs.build.outputs.rds_endpoint }}/vulnerabilities
+          DATABASE_URL=mysql://admin:${{ secrets.DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}/vulnerabilities

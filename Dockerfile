@@ -15,6 +15,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Environment variables
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 # Expose port
 EXPOSE 5000
 
