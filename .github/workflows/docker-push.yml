@@ -11,6 +11,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -22,7 +25,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/clovin-security-demo:latest
+          tags: shivit721/clovin-security-demo:latest
 
   terraform:
     needs: docker
@@ -45,8 +48,8 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}"
+        run: terraform plan -var="docker_username=shivit721"
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -var="docker_username=${{ secrets.DOCKER_HUB_USERNAME }}"
+        run: terraform apply -auto-approve -var="docker_username=shivit721"
