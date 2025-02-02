@@ -1,6 +1,6 @@
 # 🛡️ Clovin Security Vulnerability Tracker
 
-[![Build and Deploy](https://github.com/shivamrathod21/clovin-security-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/shivamrathod21/clovin-security-demo/actions/workflows/deploy.yml)
+[![Build and Deploy](https://github.com/shivamrathod21/clovin-security-demo/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/shivamrathod21/clovin-security-demo/actions/workflows/deploy.yml)
 
 > *Because tracking vulnerabilities shouldn't be vulnerable!* 🎯
 
